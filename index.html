@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five Reasons This Corridor Can’t Wait — SH 225 / I-610E</title>
+<style>
+  :root{
+    --surface:#1a1a19;
+    --card:#232322;
+    --ink:#ffffff;
+    --ink-2:#c3c2b7;
+    --muted:#898781;
+    --rule:#383835;
+    --accent:#fab219;
+    --pending:#d03b3b;
+    --radius:10px;
+    --gap:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--surface);
+    color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:22px;
+    max-width:1180px;            /* keeps cards from ballooning on wide frames */
+    margin:0 auto;
+  }
+
+  .intro{max-width:70ch;margin:0 0 22px}
+  .intro h1{font-size:1.16rem;font-weight:600;margin:0 0 6px;letter-spacing:.01em}
+  .intro p{margin:0;color:var(--ink-2);font-size:.92rem;line-height:1.5}
+  .intro .fixed{color:var(--muted);font-style:italic;margin-top:6px;font-size:.86rem}
+
+  /* SIX tracks, each card spanning two = a 3-up grid that can also centre a trailing row.
+     With five cards the last row holds two; nudging it in by one track avoids an empty
+     slot at bottom-right, which inside an embed reads as a failed load rather than a
+     deliberate layout. Revisit the nth-child rule if the card count ever changes. */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:var(--gap);
+  }
+  .card{grid-column:span 2}
+  .grid .card:nth-child(4){grid-column:2 / span 2}
+  @media (max-width:900px){
+    .grid{grid-template-columns:repeat(4,1fr)}
+    .grid .card:nth-child(4){grid-column:auto / span 2}
+    .card{height:340px}
+  }
+  @media (max-width:560px){
+    .grid{grid-template-columns:1fr}
+    .card,.grid .card:nth-child(4){grid-column:auto}
+    .card{height:330px}
+  }
+
+  /* ---- card shell: fixed aspect so the grid height is predictable inside an iframe ---- */
+  .card{
+    position:relative;
+    /* fixed height, not aspect-ratio: a StoryMaps iframe has a fixed height and
+       the page cannot push back, so total grid height must stay predictable */
+    height:clamp(300px,26vw,375px);
+    perspective:1400px;
+    background:none;border:0;padding:0;margin:0;
+    font:inherit;color:inherit;text-align:left;
+    cursor:pointer;
+    border-radius:var(--radius);
+  }
+  .card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  .inner{
+    position:absolute;inset:0;
+    transition:transform .55s cubic-bezier(.2,.7,.3,1);
+    transform-style:preserve-3d;
+  }
+  .card[aria-pressed="true"] .inner{transform:rotateY(180deg)}
+
+  .face{
+    position:absolute;inset:0;
+    /* backface-visibility alone does NOT cull reliably here: overflow:hidden on the
+       face flattens the 3D context and both faces paint. Visibility, swapped at the
+       mid-point of the flip, is deterministic. Backface kept as belt-and-braces. */
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    visibility:hidden;
+    transition:visibility 0s linear .27s;
+    border-radius:var(--radius);
+    overflow:hidden;
+    border:1px solid var(--rule);
+    display:flex;flex-direction:column;
+  }
+  .front{visibility:visible}
+  .card[aria-pressed="true"] .front{visibility:hidden}
+  .card[aria-pressed="true"] .back{visibility:visible}
+
+  /* ---------------- FRONT ---------------- */
+  .front{background:var(--card)}
+  .photo{position:absolute;inset:0;background-size:cover;background-position:center}
+  /* placeholder treatment — replaced the moment a real photo is set */
+  .photo.placeholder{
+    background-image:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 12px,transparent 12px 24px),
+      linear-gradient(160deg,#2f2f2d 0%,#1d1d1c 100%);
+  }
+  .shotnote{
+    position:absolute;top:12px;left:12px;right:12px;
+    color:var(--muted);font-size:.68rem;line-height:1.35;
+    text-transform:uppercase;letter-spacing:.06em;
+    border:1px dashed var(--rule);border-radius:6px;padding:6px 8px;
+  }
+  .scrim{
+    position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(10,10,10,.15) 0%,rgba(10,10,10,.55) 48%,rgba(10,10,10,.88) 100%);
+  }
+  /* Photo cards: keep the picture BRIGHT and only darken the band the type actually sits in.
+     An even scrim across the whole frame dims the photograph for no benefit — the top two
+     thirds carry no text. The type is protected by the steep bottom ramp plus a shadow, which
+     is what lets the gradient stay off the image above it.
+     Keep this in step with any new photography — check the eyebrow, not the big figure:
+     the white figure survives almost any background, the small muted type is what breaks. */
+  .front.has-photo .photo{filter:brightness(1.12) saturate(1.06) contrast(1.03)}
+  .front.has-photo .scrim{
+    background:linear-gradient(180deg,
+      rgba(10,10,10,0)   0%, rgba(10,10,10,0)   42%,
+      rgba(10,10,10,.28) 56%, rgba(10,10,10,.72) 72%,
+      rgba(10,10,10,.93) 87%, rgba(10,10,10,.97) 100%);
+  }
+  .front.has-photo .content{text-shadow:0 1px 3px rgba(0,0,0,.85)}
+  .front.has-photo .eyebrow,
+  .front.has-photo .cue{color:var(--ink-2)}
+  .front .content{position:relative;margin-top:auto;padding:18px}
+  .eyebrow{
+    display:flex;align-items:center;gap:8px;
+    color:var(--muted);font-size:.68rem;font-weight:700;
+    text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px;
+  }
+  .eyebrow .bar{width:3px;height:12px;background:var(--accent);border-radius:2px;flex:none}
+  .figure{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .figure .n{font-size:2.5rem;font-weight:700;line-height:1;letter-spacing:-.02em}
+  .figure .u{font-size:.78rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  .cue{margin-top:12px;color:var(--ink-2);font-size:.72rem;display:flex;align-items:center;gap:6px}
+  .cue svg{flex:none}
+
+  /* ---------------- BACK ---------------- */
+  .back{
+    background:var(--card);
+    transform:rotateY(180deg);
+    padding:18px;
+    justify-content:flex-start;
+  }
+  .back .stats{list-style:none;margin:12px 0 0;padding:0;flex:1 1 auto;min-height:0;overflow:auto}
+  .back .stats li{
+    padding:8px 0;border-top:1px solid var(--rule);
+    font-size:.82rem;line-height:1.4;color:var(--ink);
+  }
+  .back .stats li:first-child{border-top:0;padding-top:2px}
+  .back .stats b{font-weight:700}
+  .takeaway{
+    margin-top:12px;padding-top:12px;border-top:1px solid var(--rule);
+    color:var(--ink-2);font-size:.82rem;font-style:italic;line-height:1.45;
+  }
+  .source{margin-top:10px;color:var(--muted);font-size:.66rem;line-height:1.4}
+  .flag{
+    display:inline-flex;align-items:center;gap:5px;
+    color:var(--pending);font-size:.64rem;font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;margin-top:8px;
+  }
+  .flag .dot{width:6px;height:6px;border-radius:50%;background:var(--pending);flex:none}
+
+  /* ---------------- reduced motion: crossfade, no 3D ---------------- */
+  @media (prefers-reduced-motion:reduce){
+    .inner{transform-style:flat;transition:none}
+    .card[aria-pressed="true"] .inner{transform:none}
+    .face{backface-visibility:visible;-webkit-backface-visibility:visible;
+          transition:opacity .22s linear,visibility 0s linear}
+    .back{transform:none;opacity:0;pointer-events:none}
+    .card[aria-pressed="true"] .front{opacity:0;pointer-events:none}
+    .card[aria-pressed="true"] .back{opacity:1;pointer-events:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Five reasons this corridor can&rsquo;t wait</h1>
+  <p>SH 225 and I-610 East carry <b>77%</b> of Port Houston&rsquo;s truck tonnage across
+     twenty-two miles that are more than fifty years old. Each figure below is what the
+     corridor spends every year that nothing is built.</p>
+  <p class="fixed">Select a card for the detail behind each figure.</p>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+/* ------------------------------------------------------------------
+   Content. To drop in real photography, set `img` to the file path —
+   the placeholder treatment disappears automatically.
+   Metrics and status flags mirror NOTES.md § Card metrics.
+------------------------------------------------------------------ */
+const CARDS = [
+  {
+    id:"01", currency:"Opportunity",
+    figure:"77%", unit:"of port truck tons",
+    img:"img/card05_port.jpg", focus:"center 74%",
+    shot:"Photo 01 — the Ship Channel from the air: the bridge crossing it, the Turning Basin terminals, downtown behind. The corridor and the cargo in one frame.",
+    stats:[
+      "Share of Port Houston’s truck tonnage routed over this corridor",
+      "<b>58.5M tons</b> a year — <b>24%</b> of all the region trucks between zones",
+      "<b>54 of 95</b> carry <b>10%+ trucks</b> — median <b>5,475 a day</b>"
+    ],
+    takeaway:"Freight isn’t a peak-hour phenomenon on this road. It’s the baseline condition.",
+    source:"FAF 5.7.1 (2024) routed by TAG (modelled); NBI truck counts. Photo: Port Houston.",
+    pending:null
+  },
+  {
+    id:"02", currency:"State of good repair",
+    figure:"53", unit:"years old",
+    img:"img/card01_bridge.jpg",
+    shot:"Photo 02 — the Sidney Sherman Bridge itself, loaded bumper-to-bumper during the Rita evacuation, steel truss visible at left. Structure and scale, never rust-and-ruin.",
+    stats:[
+      "Median age of the <b>95</b> structures — <b>81</b> never reconstructed",
+      "<b>78</b> rated Fair, <b>0</b> Poor — <b>13</b> one point from Poor",
+      "The busiest carries <b>21,109 trucks a day</b>. It was built in <b>1962</b>."
+    ],
+    takeaway:"Fair is the last stage at which the repair is still scheduled rather than emergency.",
+    source:"FHWA NBI, USDOT/BTS NTAD, June 2025. Photo: Sidney Sherman Bridge, Rita evacuation, 2005 (Houston Chronicle).",
+    pending:null
+  },
+  {
+    id:"03", currency:"Safety",
+    figure:"1,919", unit:"crashes a year",
+    img:"img/card02_crash.jpg",
+    shot:"Photo 03 — SH 225, 4 Aug 2026: a hazmat trailer (UN 3264, corrosive) on its side across every lane of the bridge deck. Closure, not just collision.",
+    stats:[
+      "<b>9,593</b> in all, 2021–2025 — no year over <b>4.7%</b> off the average",
+      "<b>1,659</b> involved a truck — one in six, the same share on both legs",
+      "<b>53</b> killed, <b>229</b> seriously injured in those five years"
+    ],
+    takeaway:"Not a spike anyone can engineer away — the corridor as built.",
+    source:"TxDOT CRIS 2021–2025, via the Crash Analysis Tool. Photo: SH 225, 4 Aug 2026 (CW39).",
+    pending:null
+  },
+  {
+    id:"04", currency:"Time",
+    figure:"+40%", unit:"more traffic",
+    img:"img/card03_new_traffic.jpg",
+    shot:"Photo 04 — SH 225 approaching Beltway 8, exactly the shot brief: long-lens compression stacking the queue, container trucks in every lane, the petrochemical skyline behind. ON-corridor.",
+    stats:[
+      "NBI’s median forecast across the <b>95</b> structures — half grow faster",
+      "The Ship Channel crossing already runs at <b>91%</b> of capacity, all day",
+      "2045 no-build: <b>LOS E or F</b>, both peaks, both directions"
+    ],
+    takeaway:"The corridor doesn’t need permission to get busier. It only needs time.",
+    source:"FHWA NBI current and forecast ADT; TxDOT SH 225 PEL Study. Capacity: TAG routing model (modelled, all-day average). Photo: SH 225 at Beltway 8 (Mark Mulligan / Houston Chronicle).",
+    pending:null
+  },
+  {
+    id:"05", currency:"Exposure",
+    figure:"4", unit:"routes out",
+    img:"img/card04_evac.jpg",
+    shot:"Photo 05 — Hurricane Rita, 2005: the evacuation stalled on I-45, people out of their cars, contraflow lanes still empty alongside. NOT this corridor — see the source line.",
+    stats:[
+      "One of only <b>four</b> evacuation routes off this coast",
+      "<b>24</b> hurricanes within 100 miles since 1926 — one within <b>half a mile</b>",
+      "Hazmat route; <b>41 of 95</b> on the defense highway network"
+    ],
+    takeaway:"The other costs accumulate. This one is paid in full, once.",
+    source:"NOAA HURDAT2 (measured to the corridor alignment); FHWA NBI; TxDOT SH 225 PEL Study. Photo: Rita evacuation, I-45 North, 2005 (NPR).",
+    pending:null
+  }
+
+];
+
+const FLIP_ICON =
+  '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>';
+
+const grid = document.getElementById("grid");
+
+CARDS.forEach(c => {
+  const btn = document.createElement("button");
+  btn.className = "card";
+  btn.type = "button";
+  btn.setAttribute("aria-pressed", "false");
+  btn.setAttribute("aria-label",
+    `${c.currency}: ${c.figure} ${c.unit}. Select for detail.`);
+
+  // `focus` is an optional background-position: the card crops to a fixed 1.2:1-ish box, so a
+  // photo whose subject sits off-centre (card 05's bridge, low in a 4:3 frame) gets cropped out
+  // by the default `center`. Set it per card rather than re-cropping the source file.
+  const photo = c.img
+    ? `<div class="photo" style="background-image:url('${c.img}')${c.focus ? `;background-position:${c.focus}` : ""}"></div>`
+    : `<div class="photo placeholder"></div><p class="shotnote">${c.shot}</p>`;
+
+  btn.innerHTML = `
+    <div class="inner">
+      <div class="face front${c.img ? " has-photo" : ""}">
+        ${photo}
+        <div class="scrim"></div>
+        <div class="content">
+          <div class="eyebrow"><span class="bar"></span>${c.id} · ${c.currency}</div>
+          <div class="figure"><span class="n">${c.figure}</span><span class="u">${c.unit}</span></div>
+          <div class="cue">${FLIP_ICON}<span>Select for detail</span></div>
+        </div>
+      </div>
+      <div class="face back">
+        <div class="eyebrow"><span class="bar"></span>${c.id} · ${c.currency}</div>
+        <ul class="stats">${c.stats.map(s => `<li>${s}</li>`).join("")}</ul>
+        <p class="takeaway">${c.takeaway}</p>
+        <p class="source">${c.source}</p>
+        ${c.pending ? `<span class="flag"><span class="dot"></span>${c.pending}</span>` : ""}
+        <div class="cue" style="margin-top:12px">${FLIP_ICON}<span>Select to return</span></div>
+      </div>
+    </div>`;
+
+  const front = btn.querySelector(".front");
+  const back  = btn.querySelector(".back");
+  const sync = flipped => {
+    btn.setAttribute("aria-pressed", String(flipped));
+    // keep the hidden face out of the accessibility tree and the tab order
+    front.setAttribute("aria-hidden", String(flipped));
+    back.setAttribute("aria-hidden", String(!flipped));
+  };
+  sync(false);
+
+  btn.addEventListener("click", () =>
+    sync(btn.getAttribute("aria-pressed") !== "true"));
+  btn.addEventListener("keydown", e => {
+    if (e.key === "Escape" && btn.getAttribute("aria-pressed") === "true") {
+      e.preventDefault(); sync(false);
+    }
+  });
+
+  grid.appendChild(btn);
+});
+</script>
+</body>
+</html>
